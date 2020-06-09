@@ -23,9 +23,37 @@ func main() {
 	http.HandleFunc("/about", about)
 	http.HandleFunc("/contact", contact)
 	http.HandleFunc("/apply", apply)
+	http.HandleFunc("/process", processor)
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 
 	http.ListenAndServe(":8080", nil)
+}
+
+func processor(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
+	fname := req.FormValue("first_name")
+	lname := req.FormValue("last_name")
+
+	d := struct {
+		First string
+		Last  string
+	}{
+
+		First: fname,
+		Last:  lname,
+	}
+
+	err := tpl.ExecuteTemplate(w, "processor.gohtml", d)
+	if err != nil {
+		log.Println("Log", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	fmt.Println("No errors found")
+	fmt.Println(req.URL.Path)
 }
 
 func index(w http.ResponseWriter, req *http.Request) {
